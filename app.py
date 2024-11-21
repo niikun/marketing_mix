@@ -83,11 +83,11 @@ if uploaded_file is not None:
 
     # 予測結果のグラフ化
     fig = plt.figure(figsize=(25, 8))
-    plt.plot(all_predictions, color="blue", label="Predicted")
-    plt.plot(data[target][-len(all_predictions):], "ro", label="True")
+    plt.plot(all_predictions, color="blue", label="Prediction")
+    plt.plot(data[target][-len(all_predictions):], "ro", label="Actual")
     plt.legend(fontsize=18) 
     plt.title(
-        "Prediction and Actual",fontsize=24
+        "Prediction and Actual",fontsize=28
     )
     st.pyplot(fig)
 
