@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import root_mean_squared_error, mean_absolute_percentage_error, r2_score
+from sklearn.metrics import mean_absolute_percentage_error, r2_score
 from sklearn.model_selection import TimeSeriesSplit
 import shap
 import matplotlib.pyplot as plt
@@ -38,7 +38,7 @@ if uploaded_file is not None:
     }
 
     # 時系列分割
-    tscv = TimeSeriesSplit(n_splits=3, test_size=10)
+    tscv = TimeSeriesSplit(n_splits=3)
 
     all_predictions = []
 
@@ -60,15 +60,18 @@ if uploaded_file is not None:
     all_predictions = pd.Series(all_predictions, index=data.index[-len(all_predictions):])
 
     # 評価指標の計算
-    rmse_metric = root_mean_squared_error(y_true=data[target][-len(all_predictions):], y_pred=all_predictions)
-    mape_metric = mean_absolute_percentage_error(y_true=data[target][-len(all_predictions):], y_pred=all_predictions)
+    def root_mean_squared_error(y_true, y_pred):
+        return np.sqrt(np.mean((y_true - y_pred) ** 2))
+
+    rmse_metric = root_mean_squared_error(data[target][-len(all_predictions):], all_predictions)
+    mape_metric = mean_absolute_percentage_error(data[target][-len(all_predictions):], all_predictions)
 
     # NRMSE 関数の定義と計算
     def nrmse(y_true, y_pred):
         return np.sqrt(np.mean((y_true - y_pred) ** 2)) / (np.max(y_true) - np.min(y_true))
 
     nrmse_metric = nrmse(data[target][-len(all_predictions):], all_predictions)
-    r2_metric = r2_score(y_true=data[target][-len(all_predictions):], y_pred=all_predictions)
+    r2_metric = r2_score(data[target][-len(all_predictions):], all_predictions)
 
     # 結果の表示
     st.write(f"RMSE: {rmse_metric}")
@@ -77,11 +80,11 @@ if uploaded_file is not None:
     st.write(f"R2 Score: {r2_metric}")
 
     # 予測結果のグラフ化
-    fig, ax = plt.subplots(figsize=(25, 8))
-    ax.plot(all_predictions, color="blue", label="Predicted")
-    ax.plot(data[target][-len(all_predictions):], "ro", label="True")
-    ax.legend()
-    ax.set_title(
+    fig = plt.figure(figsize=(25, 8))
+    plt.plot(all_predictions, color="blue", label="Predicted")
+    plt.plot(data[target][-len(all_predictions):], "ro", label="True")
+    plt.legend()
+    plt.title(
         f"RMSE: {np.round(rmse_metric, 2)}, NRMSE: {np.round(nrmse_metric, 3)}, MAPE: {np.round(mape_metric, 3)}, R2: {np.round(r2_metric, 3)}"
     )
     st.pyplot(fig)
@@ -94,8 +97,9 @@ if uploaded_file is not None:
     feature_importance = np.abs(df_shap_values).mean()
 
     st.subheader("特徴量の重要度")
-    fig, ax = plt.subplots(figsize=(10, 8))
-    feature_importance.sort_values().plot.barh(ax=ax)
+    fig = plt.figure(figsize=(10, 8))
+    feature_importance.sort_values().plot.barh()
+    plt.title("Feature Importance")
     st.pyplot(fig)
 
     st.write("特徴量の相対的重要度")
