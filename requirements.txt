@@ -4,7 +4,7 @@ numpy==1.26.0
 scikit-learn==1.3.2
 shap
 matplotlib==3.8.2
-pillow --only-binary=:all:
+pillow>=7.1.0,<10
 pylint
 pytest
 black
