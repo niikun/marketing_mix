@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_percentage_error
+from sklearn.metrics import root_mean_squared_error, mean_absolute_percentage_error, r2_score
 from sklearn.model_selection import TimeSeriesSplit
 import shap
 import matplotlib.pyplot as plt
@@ -40,8 +40,7 @@ if uploaded_file is not None:
     # 時系列分割
     tscv = TimeSeriesSplit(n_splits=3, test_size=10)
 
-    scores = []
-    prediction = None
+    all_predictions = []
 
     for train_index, test_index in tscv.split(data):
         x_train = data.iloc[train_index][features]
@@ -54,18 +53,22 @@ if uploaded_file is not None:
         rf.fit(x_train, y_train)
         prediction = rf.predict(x_test)
 
-        rmse = mean_squared_error(y_true=y_test, y_pred=prediction, squared=False)
-        scores.append(rmse)
+        # 各分割セットの予測値を保存
+        all_predictions.extend(prediction)
 
-    # モデル評価指標計算
-    rmse_metric = mean_squared_error(y_true=data[target], y_pred=prediction, squared=False)
-    mape_metric = mean_absolute_percentage_error(y_true=data[target], y_pred=prediction)
+    # 予測結果を Pandas Series に変換してインデックスを揃える
+    all_predictions = pd.Series(all_predictions, index=data.index[-len(all_predictions):])
 
+    # 評価指標の計算
+    rmse_metric = root_mean_squared_error(y_true=data[target][-len(all_predictions):], y_pred=all_predictions)
+    mape_metric = mean_absolute_percentage_error(y_true=data[target][-len(all_predictions):], y_pred=all_predictions)
+
+    # NRMSE 関数の定義と計算
     def nrmse(y_true, y_pred):
         return np.sqrt(np.mean((y_true - y_pred) ** 2)) / (np.max(y_true) - np.min(y_true))
 
-    nrmse_metric = nrmse(data[target], prediction)
-    r2_metric = r2_score(y_true=data[target], y_pred=prediction)
+    nrmse_metric = nrmse(data[target][-len(all_predictions):], all_predictions)
+    r2_metric = r2_score(y_true=data[target][-len(all_predictions):], y_pred=all_predictions)
 
     # 結果の表示
     st.write(f"RMSE: {rmse_metric}")
@@ -75,8 +78,8 @@ if uploaded_file is not None:
 
     # 予測結果のグラフ化
     fig, ax = plt.subplots(figsize=(25, 8))
-    ax.plot(prediction, color="blue", label="Predicted")
-    ax.plot(data[target], "ro", label="True")
+    ax.plot(all_predictions, color="blue", label="Predicted")
+    ax.plot(data[target][-len(all_predictions):], "ro", label="True")
     ax.legend()
     ax.set_title(
         f"RMSE: {np.round(rmse_metric, 2)}, NRMSE: {np.round(nrmse_metric, 3)}, MAPE: {np.round(mape_metric, 3)}, R2: {np.round(r2_metric, 3)}"
