@@ -87,7 +87,7 @@ if uploaded_file is not None:
     plt.plot(data[target][-len(all_predictions):], "ro", label="True")
     plt.legend(fontsize=18) 
     plt.title(
-        "販売予測と実績",fontsize=24}"
+        "販売予測と実績",fontsize=24
     )
     st.pyplot(fig)
 
