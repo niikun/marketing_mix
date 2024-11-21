@@ -85,8 +85,7 @@ if uploaded_file is not None:
     fig = plt.figure(figsize=(25, 8))
     plt.plot(all_predictions, color="blue", label="Predicted")
     plt.plot(data[target][-len(all_predictions):], "ro", label="True")
-    plt.legend(fontsize=14) 
-    plt.legend()
+    plt.legend(fontsize=28) 
     plt.title(
         f"RMSE: {np.round(rmse_metric, 2)}, NRMSE: {np.round(nrmse_metric, 3)}, MAPE: {np.round(mape_metric, 3)}, R2: {np.round(r2_metric, 3)}"
     )
