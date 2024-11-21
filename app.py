@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 shap.initjs()
 
 # タイトル
-st.title("売上予測と特徴量重要度の可視化アプリ")
+st.title("売上予測・特徴量重要度可視化アプリ")
 
 # ファイルアップロード
 uploaded_file = st.file_uploader("CSVファイルをアップロードしてください", type=["csv"])
@@ -74,6 +74,7 @@ if uploaded_file is not None:
     r2_metric = r2_score(data[target][-len(all_predictions):], all_predictions)
 
     # 結果の表示
+    st.subheader("予測と評価指標")
     st.write(f"RMSE: {rmse_metric}")
     st.write(f"MAPE: {mape_metric}")
     st.write(f"NRMSE: {nrmse_metric}")
