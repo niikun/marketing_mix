@@ -1,0 +1,9 @@
+streamlit==1.25.0
+pandas==2.1.2
+numpy==1.26.0
+scikit-learn==1.4.1
+shap==0.42.0
+matplotlib==3.8.2
+pylint
+pytest
+black
