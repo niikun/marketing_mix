@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 shap.initjs()
 
 # タイトル
-st.title("売上予測・特徴量重要度可視化アプリ")
+st.title("売上予測・特徴量の重要度を/n可視化するアプリ")
 
 # ファイルアップロード
 uploaded_file = st.file_uploader("CSVファイルをアップロードしてください", type=["csv"])
