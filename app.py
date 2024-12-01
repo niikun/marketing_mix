@@ -11,8 +11,7 @@ import matplotlib.pyplot as plt
 shap.initjs()
 
 # タイトル
-st.title("売上予測・特徴量の重要度を")
-st.title("可視化するアプリ")
+st.title("売上予測・媒体の重要度を可視化")
 
 # ファイルアップロード
 uploaded_file = st.file_uploader("CSVファイルをアップロードしてください", type=["csv"])
@@ -104,5 +103,31 @@ if uploaded_file is not None:
     plt.title("Feature Importance")
     st.pyplot(fig)
 
-    st.write("特徴量の相対的重要度")
-    st.dataframe(feature_importance / feature_importance.sum())
+    responses = pd.DataFrame(df_shap_values[media_channels].abs().sum(axis = 0), columns = ["effect_share"])
+    responses_percentages = responses / responses.sum()
+    spends_percentages = pd.DataFrame(data[media_channels].sum(axis = 0) / data[media_channels].sum(axis = 0).sum(), columns = ["spend_share"])
+    spend_effect_share = pd.merge(responses_percentages, spends_percentages, left_index = True, right_index = True)
+    spend_effect_share = spend_effect_share.reset_index().rename(columns = {"index": "media"})
+    df_spend_effect_share = spend_effect_share.copy()
+    spend_effect_share.melt(id_vars=["media"])
+    spend_effect_share.melt(id_vars=["media"],value_vars = ["spend_share", "effect_share"])
+    df_share = spend_effect_share.melt(id_vars=["media"],value_vars = ["spend_share", "effect_share"])
+
+
+    x = np.array(spend_effect_share["media"].unique())
+    x_position = np.arange(len(x))
+
+
+    y_control = np.array(spend_effect_share["spend_share"])
+    y_stress = np.array(spend_effect_share["effect_share"])
+
+    st.subheader("効果と出費のシェア")
+    st.dataframe(df_spend_effect_share)
+    fig = plt.figure(figsize=(10, 5))
+    ax = fig.add_subplot(1, 1, 1)
+    ax.bar(x_position, y_control,width=0.4,  label='spend share',color='red')
+    ax.bar(x_position + 0.4,  y_stress, width=0.4, label='effect share',color='blue')
+    ax.legend()
+    ax.set_xticks(x_position + 0.2)
+    ax.set_xticklabels(x)
+    st.pyplot(fig)
